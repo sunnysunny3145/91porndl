@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
-
+# go to :
+# https://weibomiaopai.com/online-video-download-helper/91porn 
+# first
+#
 import re
 import os
 import sys
 import getopt
 import requests
-from contextlib import closing
-from urllib import request, parse
-
+import urllib.request
+import urllib.error
+from contextlib import closing 
+import subprocess
+import shutil
+import os
 proxies = {}
 __version__ ="V1.0.0"
 script_name = "porndl"
 
 class ProgressBar(object):
     """
-    链接：https://www.zhihu.com/question/41132103/answer/93438156
-    来源：知乎
+    link：https://www.zhihu.com/question/41132103/answer/93438156
+    source：zhihu
     """
     def __init__(self, title, count=0.0, run_status=None, fin_status=None, total=100.0, unit='', sep='/', chunk_size=1.0):
         super(ProgressBar, self).__init__()
@@ -25,12 +31,12 @@ class ProgressBar(object):
         self.count = count
         self.chunk_size = chunk_size
         self.status = run_status or ""
-        self.fin_status = fin_status or " " * len(self.statue)
+        self.fin_status = fin_status or " " * len(self.status)
         self.unit = unit
         self.seq = sep
 
     def __get_info(self):
-        """【razorback】 下载完成 3751.50 KB / 3751.50 KB """
+        """【razorback】 download finished 3751.50 KB / 3751.50 KB """
         _info = self.info % (self.title, self.status, self.count/self.chunk_size, self.unit, self.seq, self.total/self.chunk_size, self.unit)
         return _info
 
@@ -44,116 +50,31 @@ class ProgressBar(object):
         print(self.__get_info(), end=end_str)
 
 def download_video_by_url(url, path, title, ext):
-    
     outfile = '{}/{}.{}'.format(path, title, ext)
-    with closing(requests.get(url, stream=True)) as response:
-        chunk_size = 1024
-        content_size = int(response.headers['content-length'])
-        progress = ProgressBar(title, total=content_size, unit="KB", chunk_size=chunk_size, run_status="正在下载", fin_status="下载完成")
-        assert response.status_code == 200
-        with open(outfile, "wb") as file:
-            for data in response.iter_content(chunk_size=chunk_size):
-                file.write(data)
-                progress.refresh(count=len(data))
+    urllib.request.urlretrieve(url, outfile)
+    print(f'{url}: {outfile}')
     return True
 
-def pick_a_chinese_proxy():
-
-    import random
-    from bs4 import BeautifulSoup
-    
-    content = request.urlopen(
-        "http://www.proxynova.com/proxy-server-list/country-cn/").read()
-    soup = BeautifulSoup(content, 'lxml')
-    all_proxies = []
-    for row in soup.find_all('tr')[1:]:
-        try:
-            ip = row.find_all('span')[0].text.strip() + row.find_all('span')[1].text.strip()
-            port = row.find_all('a')[0].text.strip()
-            if not port in ['80', '3128', '8080']:
-                continue
-            cur_proxy = "{}:{}".format(ip, port)
-            all_proxies.append(cur_proxy)
-        except:
-            pass
-
-    if not len(all_proxies):
-        raise AssertionError('No chinese proxy is valid，Please use -x or -s option instead!')
-    return random.choice(all_proxies)
-
-def get_html(urls):
-    
-    for url in urls:
-        if url.startswith('https://'):
-            url = url[8:]
-        if not url.startswith('http://'):
-            url = 'http://' + url
-
-    if auto_proxy:
-        extractor_proxy = pick_a_chinese_proxy()
-        proxies['http'] = 'http://{}'.format(extractor_proxy)
-        print("Using Chinese proxy {}".format(extractor_proxy))
-
-    r = requests.get(url, proxies=proxies)
-    html = r.content.decode('utf-8')
-
-    r = re.search(r'^(.*)/\w+', url)
-    assert r
-    domain = r.group(1)
-    if domain and traceback:
-        print('domain : {}'.format(domain))
-    
-    r = re.search("so.addVariable\(\'file\',\'(.*)\'\);\n{1,10}", html)
-    assert r
-    vid = r.group(1)
-    if vid and traceback:
-        print('vid : {}'.format(vid))
-
-    r = re.search("so.addVariable\(\'max_vid\',\'(.*)\'\);\n{1,10}", html)
-    assert r
-    max_vid = r.group(1)
-    if max_vid and traceback:
-        print('max_vid : {}'.format(max_vid))
-
-    r = re.search("so.addVariable\(\'seccode\',\'(.*)\'\);\n{1,10}", html)
-    assert r
-    seccode = r.group(1)
-    if seccode and traceback:
-        print('seccode : {seccode}'.format(seccode=seccode))
-
-    r = re.search("so.addVariable\(\'mp4\',\'(.*)\'\);\n{1,10}", html)
-    assert r
-    mp4 = r.group(1)
-    if mp4 and traceback:
-        print('mp4 : {}'.format(mp4))
-
-    r = re.search(r'<title>\W{1,10}(.*)\n.*</title>', html)
-    assert r
-    title = r.group(1).replace(' ', '-')
-    if title and traceback:
-        print('title : {}'.format(title))
-
-    jsonurl = domain + "/getfile.php?VID=" + vid + "&mp4=" + mp4 + "&seccode=" + seccode + "&max_vid=" + max_vid
-    if jsonurl and traceback:
-        print('jsonurl : {}'.format(jsonurl))
-
-    ret = requests.get(jsonurl, proxies=proxies)
-    data = ret.content.decode('utf-8')
-    resp = re.search("^file=(.*)&domainUrl.*", data)
-    assert resp
-
-    download_url = parse.unquote(resp.group(1))
-    if traceback:
-        print("Real URLs : {}".format(download_url))
-
-    try:
-        if download_video_by_url(download_url, output_dir, title, 'mp4') and traceback:    
-            print('Processing download successful !!! Enjoy it !!!')
-    except KeyboardInterrupt:
-        if traceback:
-            raise
-        else:
-            sys.exit(1)
+def get_html(link_file):
+    ff = open('mylist.txt','w')
+    ff.close()
+    with open(link_file,'r') as f:
+        download_url = f.readline()
+        cnt = 0
+        while((download_url!='')&(cnt < 1000)):
+            cnt+=1
+            print(download_url) 
+            outfile = '{}/{}.{}'.format(output_dir, f'{cnt}', 'ts')
+            try:
+                if download_video_by_url(download_url, output_dir, f'{cnt}', 'ts'):    
+                    print('Processing download successful !!! Enjoy it !!!')
+                    with open('mylist.txt','a') as ff:
+                        ff.write(f'file \'{outfile}\'\n')
+            except KeyboardInterrupt:
+                raise
+            except urllib.error.HTTPError:
+                print(f'not valid link: {download_url}')
+            download_url = f.readline()
 
 def parse_args(script_name, **kwargs):
 
@@ -186,7 +107,7 @@ def parse_args(script_name, **kwargs):
     global auto_proxy
     global output_dir
 
-    output_dir = '.'
+    output_dir = './downloads'
     traceback = False
     auto_proxy = False
 
@@ -218,8 +139,21 @@ def parse_args(script_name, **kwargs):
     if not args:
         print(help)
         sys.exit()
+    print(f'args: ${args}\n')
+    get_html(args[0])
+    #ffmpeg -f concat -safe 0 -i mylist.txt -c copy merged.mp4
+    subprocess.call('ffmpeg -f concat -safe 0 -i mylist.txt -c copy merged.mp4', shell=True)
+    #testmerge()
 
-    get_html(args)
+def testmerge():
+    cwd = os.getcwd()
+    TS_DIR = 'downloads'
+    with open('merged.ts', 'wb') as merged:
+        for ts_file in os.listdir(f'{cwd}/{TS_DIR}'):
+            print(ts_file)
+            with open(f'{cwd}/{TS_DIR}/{ts_file}', 'rb') as mergefile:
+                shutil.copyfileobj(mergefile, merged)
+
 
 def main(**kwargs):
     parse_args('porndl', **kwargs)
