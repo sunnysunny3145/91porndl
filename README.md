@@ -4,9 +4,27 @@
 
 [Porndl](https://github.com/iliul/porndl) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto.
 
-Only support few of the website page based download due to the coding format. If it failed please go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a *.links input file. Then use it. Still under testing.
+Only support few of the website page based download due to the coding format. If it failed please refer to the method of getting playlist or m3u8. 
 
 # Getting Start
+
+# Method of getting playlist or m3u8 link:
+
+For getting the playlist: 
+
+go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a *.links input file. Then use it. 
+
+For getting the m3u8 link:
+
+Using chrome browser, use F12 to enter the console. click the 'network' when video is playing. After applying the filter of 'ts', you will see few xxxxx.ts file with the header information of: 
+
+Request URL: https://la2.killcovid2021.com/m3u8/xxxxxx/ooooooo.ts
+
+Then the corresponding m3u8 link would be like:
+
+https://la2.killcovid2021.com/m3u8/xxxxxx/xxxxxx.m3u8
+
+Use it as the input. 
 
 ## Prerequisites
 
@@ -27,7 +45,8 @@ $ pip install -r requirements.txt
 
 ```
 python porndl.py -f somelinks.links 
-python porndl.py 'the video website page link(http://www.***.com/view_video.php?viewkey=********))'
+python porndl.py -p 'the video website page link(http://www.***.com/view_video.php?viewkey=********))'
+python porndl.py -m wwww.https://la2.killcovid2021.com/m3u8/xxxx/xxxx.m3u8
 ```
 
 # Usage
@@ -41,8 +60,9 @@ Startup options:
   
 Download options:
     -o | --output-dir <PATH>            Set output directory.
-    -l | --ling-file <FILE>.               Set the *.link file as the download input
-    -d | --debug                        Show traceback and other debug info.
+    -l | --link-file <FILE>             Set *.link file as input.
+    -m | --m3u8 <ADDRESS>               Set m3u8 link as input. 
+    -p | --play-site <ADDRESS>          Set play site link as input.  
 ```
 
 # TODO

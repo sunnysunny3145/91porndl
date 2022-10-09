@@ -24,7 +24,6 @@ import m3u8
 
 __version__ ="V1.0.0"
 script_name = "porndl"
-                
 
 class ProgressBar(object):
     """
@@ -71,11 +70,16 @@ class porndl:
         if not os.path.exists(download_loc):
             os.makedirs(download_loc)
 
-    def download_video_by_url(self, url, path, title, ext):
-        outfile = '{}/{}.{}'.format(path, title, ext)
+    def download_video_by_url(self, url, title, ext, loc = ''):
+        if not loc:
+            loc = self.download_loc
+        outfile = '{}/{}.{}'.format(loc, title, ext)
         urllib.request.urlretrieve(url, outfile)
         print(f'{url}: {outfile}')
         return True
+
+    def convert_ts2mp4(self, title):
+        subprocess.call(f'ffmpeg -f concat -safe 0 -i mylist.txt -c copy {self.download_loc}/{title}.mp4', shell=True)
 
     def download_ts(self, ts_list): 
         f = open("mylist.txt", "w")
@@ -83,7 +87,7 @@ class porndl:
         for cnt, download_url in enumerate(ts_list): 
             outfile = '{}/{}.{}'.format(self.tmp_loc, f'{cnt}', 'ts')
             try:
-                if self.download_video_by_url(download_url, self.tmp_loc, f'{cnt}', 'ts'):    
+                if self.download_video_by_url(download_url, f'{cnt}', 'ts', self.tmp_loc):    
                     print(f'Processing {cnt} and {download_url} download successful!')
                     with open('mylist.txt','a') as ff:
                         ff.write(f'file \'{outfile}\'\n')
@@ -99,7 +103,13 @@ class porndl:
         with open(link_file,'r') as f:
             download_url = f.readline()
             ts_list.append(download_url)
-        self.download_ts(ts_list)
+        if ts_list:
+            self.download_ts(ts_list)
+            self.convert_ts2mp4(ts_list[0])
+        else:
+            print('empty file.')
+            sys.exit(2)
+
 
     def get_url_from_listpage(self):
         page_url = 'http://www.91porn.com/index.php'
@@ -129,15 +139,16 @@ class porndl:
         title = res.sub(restr, desstr).replace("Chinesehomemadevideo","")
         return title 
 
-    def download_m3u8_by_url(self, url): 
+    def download_m3u8_by_url(self, url, title):  
         playlist = m3u8.load(url)
         ts_list = []
         for i in playlist.segments: 
             print(i.base_uri + i.uri) 
             ts_list.append(i.base_uri + i.uri) 
         self.download_ts(ts_list)
+        self.convert_ts2mp4(title)
 
-    def download_video_from_playpage(self, page_url = 'https://www.91porn.com/view_video.php?viewkey=1730213336'):
+    def download_video_from_playpage(self, page_url):
         headers={'Accept-Language':'zh-CN,zh;q=0.9',
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:66.0) Gecko/20100101 Firefox/66.0',
                         'X-Forwarded-For': self.random_ip(),
@@ -152,9 +163,13 @@ class porndl:
         strencode2 = js2py.eval_js(encodedata2)
         strencode = js2py.eval_js(encodedata1)  
         a = re.compile('document.write\(strencode2\("(.*)"').findall(base_req.content.decode('utf-8'))
+        print(base_req.content.decode('utf-8'))
         if len(a)>0:
             a = a[0].split(',')
             text = a[0].replace('"', '')
+            print(text)
+            print('********************')
+            print(strencode2(text))
             url = BeautifulSoup(strencode2(text), "html.parser").source.attrs['src']
         else:
             a= re.compile('document.write\(strencode\("(.*)"').findall(base_req.content.decode('utf-8'))
@@ -164,10 +179,9 @@ class porndl:
         title = self.filter_str(title)
         videotype = urlparse(url).path.split(".")[1]
         if videotype == "m3u8":
-            self.download_m3u8_by_url(url)
-            subprocess.call(f'ffmpeg -f concat -safe 0 -i mylist.txt -c copy {self.download_loc}/{title}.mp4', shell=True)
+            self.download_m3u8_by_url(url, title)
         else:
-            self.download_video_by_url(url, self.download_loc, title, '.mp4')
+            self.download_video_by_url(url, title, '.mp4')
         
 def parse_args(script_name, **kwargs):
 
@@ -179,13 +193,16 @@ def parse_args(script_name, **kwargs):
     help += '''Download options:
     -o | --output-dir <PATH>            Set output directory.
     -l | --link-file <FILE>             Set *.link file as input.
-    -d | --debug                        Show traceback and other debug info.
+    -m | --m3u8 <ADDRESS>               Set m3u8 link as input. 
+    -p | --play-site <ADDRESS>          Set play site link as input.  
     '''
 
-    short_opts = 'Vhdac:o:x:s:'
-    opts = ['version', 'help', 'debug', 'auto-proxy', 'cookies=', 'output-dir=', 'http-proxy=', 'socks-proxy=']
+    short_opts = 'Vhdac:o:l:m:p'
+    opts = ['version', 'help', 'output-dir=', 'link-file', 'm3u8', 'play-site']
     download_loc = './downloads'
     link_file = ''
+    m3u8_link = ''
+    play_site = '' 
     # Get options and arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, opts)
@@ -207,19 +224,25 @@ def parse_args(script_name, **kwargs):
             download_loc = a 
         elif o in ("-l", "--link-file"):
             link_file = a  
+        elif o in ("-m", "--m3u8"):
+            m3u8_link = a   
+        elif o in ("-p", "--playsite"):
+            play_site = a   
         else:
             print("try 'porndl --help' for more options")
             sys.exit(2)
 
-    if (not args) & (link_file==''):
+    if (not link_file) & (not m3u8_link) & (not play_site):
         print(help)
         sys.exit()
-
+    
     pl = porndl(download_loc)
-    if not args:
-        pl.get_video_by_ts_files(download_loc) 
-    pl.download_video_from_playpage(args[0])
-
+    if play_site:
+        pl.download_video_from_playpage(play_site)
+    elif m3u8_link:
+        pl.download_m3u8_by_url(m3u8_link, m3u8_link.split('/')[-1])
+    elif link_file:
+        pl.get_video_by_ts_files(link_file)  
 
 def main(**kwargs):
     parse_args('porndl', **kwargs)
