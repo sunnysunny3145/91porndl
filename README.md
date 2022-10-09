@@ -1,22 +1,22 @@
-# Porndl
+# 91Porndl
 
 [![Build Status](https://travis-ci.org/iliul/porndl.svg?branch=dev)](https://travis-ci.org/iliul/porndl)
 
-[Porndl](https://github.com/iliul/porndl) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto.
+[91Porndl](git@github.com:sunnysunny3145/91porndl.git) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto.
 
-Only support few of the website page based download due to the coding format. If it failed please refer to the method of getting playlist or m3u8. 
+Only support few of the website page based download due to the coding format. If it failed please refer to the method of getting playlist or m3u8.
 
 # Getting Start
 
 # Method of getting playlist or m3u8 link:
 
-For getting the playlist: 
+For getting the playlist:
 
-go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a *.links input file. Then use it. 
+go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a *.links input file. Then use it.
 
 For getting the m3u8 link:
 
-Using chrome browser, use F12 to enter the console. click the 'network' when video is playing. After applying the filter of 'ts', you will see few xxxxx.ts file with the header information of: 
+Using chrome browser, use F12 to enter the console. click the 'network' when video is playing. After applying the filter of 'ts', you will see few xxxxx.ts file with the header information of:
 
 Request URL: https://la2.killcovid2021.com/m3u8/xxxxxx/ooooooo.ts
 
@@ -24,7 +24,7 @@ Then the corresponding m3u8 link would be like:
 
 https://la2.killcovid2021.com/m3u8/xxxxxx/xxxxxx.m3u8
 
-Use it as the input. 
+Use it as the input.
 
 ## Prerequisites
 
@@ -36,8 +36,8 @@ Use it as the input.
 ## Install via pip
 
 ```
-$ git clone git@github.com:sunnysunny3145/porndl.git
-$ cd porndl
+$ git clone git@github.com:sunnysunny3145/91porndl.git
+$ cd 91porndl
 $ pip install -r requirements.txt
 ```
 
