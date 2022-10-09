@@ -2,9 +2,13 @@
 
 [![Build Status](https://travis-ci.org/iliul/porndl.svg?branch=dev)](https://travis-ci.org/iliul/porndl)
 
-[91Porndl](git@github.com:sunnysunny3145/91porndl.git) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto.
+[91Porndl](git@github.com:sunnysunny3145/91porndl.git) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto. tested on 2022 10 09. 
 
-Only support few of the website page based download due to the coding format. If it failed please refer to the method of getting playlist or m3u8.
+There are three methods:
+
+1. using video play website address as the input: -p (partially work)
+2. using m3u8 link as the input: -m (need the F12 on Chrome console)
+3. using the file of ts files as the input: -f (need a website to extracting the list of ts files)
 
 # Getting Start
 
