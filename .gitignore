@@ -63,3 +63,5 @@ target/
 *.links
 *.mp4
 mylist.txt
+tmp/
+.DS_Store

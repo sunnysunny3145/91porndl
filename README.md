@@ -2,9 +2,10 @@
 
 [![Build Status](https://travis-ci.org/iliul/porndl.svg?branch=dev)](https://travis-ci.org/iliul/porndl)
 
-[Porndl](https://github.com/iliul/porndl) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto. 
+[Porndl](https://github.com/iliul/porndl) is a tiny command-line utility to download videos from the **91porn  site**(🔞). Personal use, fully script. u need to run it semi-auto.
 
-Before using it, u need to go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a .links input file. 
+Only support few of the website page based download due to the coding format. If it failed please go to https://weibomiaopai.com/online-video-download-helper/91porn to get all sub-files link and save it as a *.links input file. Then use it. Still under testing. 
+
 
 # Getting Start
 
@@ -26,8 +27,8 @@ $ pip install -r requirements.txt
 ## Example
 
 ```
-(py3k) root@Ubuntu Server:~/code/porndl# python porndl.py somelinks.links 
-【Stairway-to-the-neighbor-stripped-fuck-Squirt-retransmission】     下载完成     42400.02 KB / 42400.02 KB
+python porndl.py -f somelinks.links 
+python porndl.py 'the video website page link(http://www.***.com/view_video.php?viewkey=********))'
 ```
 
 # Usage
@@ -41,19 +42,18 @@ Startup options:
   
 Download options:
     -o | --output-dir <PATH>            Set output directory.
-    -a | --auto-proxy                   Auto choice an Chinese HTTP proxy.
-    -c | --cookies <COOKIES_FILE>       Load cookies.txt or cookies.sqlite.
-    -x | --http-proxy <HOST:PORT>       Use an HTTP proxy for downloading.
-    -s | --socks-proxy <HOST:PORT>      Use an SOCKS proxy for downloading.
+    -l | --ling-file <FILE>.               Set the *.link file as the download input
     -d | --debug                        Show traceback and other debug info.
 ```
 
 # TODO
 
-- [X] support download progress bar
-- [ ] support more sites
+- [ ] support more coding format
+- [ ] support more site
+- [ ] support download progress bar
 
 # References
 
 1. **you-get** -- [https://github.com/soimort/you-get](https://github.com/soimort/you-get)
 2. **proxy module** -- [https://github.com/soimort/you-get/pull/1063](https://github.com/soimort/you-get/pull/1063)
+3. 91pron_python -- https://github.com/guobaby/91pron_python

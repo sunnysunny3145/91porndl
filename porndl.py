@@ -3,20 +3,28 @@
 # https://weibomiaopai.com/online-video-download-helper/91porn 
 # first
 #
+from lib2to3.pgen2.pgen import generate_grammar
 import re
 import os
 import sys
 import getopt
 import requests
+import requests.packages.urllib3
 import urllib.request
 import urllib.error
 from contextlib import closing 
 import subprocess
 import shutil
 import os
-proxies = {}
+import random
+from bs4 import BeautifulSoup
+import js2py
+from urllib.parse import urlparse
+import m3u8
+
 __version__ ="V1.0.0"
 script_name = "porndl"
+                
 
 class ProgressBar(object):
     """
@@ -49,33 +57,118 @@ class ProgressBar(object):
             self.status = status or self.fin_status
         print(self.__get_info(), end=end_str)
 
-def download_video_by_url(url, path, title, ext):
-    outfile = '{}/{}.{}'.format(path, title, ext)
-    urllib.request.urlretrieve(url, outfile)
-    print(f'{url}: {outfile}')
-    return True
+class porndl:
+    def __init__(self, download_loc) -> None: 
+        self.proxies = {}
+        requests.packages.urllib3.disable_warnings()
+        requests.adapters.DEFAULT_RETRIES = 5 # 增加重连次数
+        self.s = requests.session()
+        self.s.keep_alive = False # 关闭多余连接
+        self.tmp_loc = './tmp'
+        shutil.rmtree(self.tmp_loc)
+        os.makedirs(self.tmp_loc)
+        self.download_loc = download_loc
+        if not os.path.exists(download_loc):
+            os.makedirs(download_loc)
 
-def get_html(link_file):
-    ff = open('mylist.txt','w')
-    ff.close()
-    with open(link_file,'r') as f:
-        download_url = f.readline()
-        cnt = 0
-        while((download_url!='')&(cnt < 1000)):
-            cnt+=1
-            print(download_url) 
-            outfile = '{}/{}.{}'.format(output_dir, f'{cnt}', 'ts')
+    def download_video_by_url(self, url, path, title, ext):
+        outfile = '{}/{}.{}'.format(path, title, ext)
+        urllib.request.urlretrieve(url, outfile)
+        print(f'{url}: {outfile}')
+        return True
+
+    def download_ts(self, ts_list): 
+        f = open("mylist.txt", "w")
+        f.close()
+        for cnt, download_url in enumerate(ts_list): 
+            outfile = '{}/{}.{}'.format(self.tmp_loc, f'{cnt}', 'ts')
             try:
-                if download_video_by_url(download_url, output_dir, f'{cnt}', 'ts'):    
-                    print('Processing download successful !!! Enjoy it !!!')
+                if self.download_video_by_url(download_url, self.tmp_loc, f'{cnt}', 'ts'):    
+                    print(f'Processing {cnt} and {download_url} download successful!')
                     with open('mylist.txt','a') as ff:
                         ff.write(f'file \'{outfile}\'\n')
             except KeyboardInterrupt:
                 raise
             except urllib.error.HTTPError:
                 print(f'not valid link: {download_url}')
-            download_url = f.readline()
 
+    def get_video_by_ts_files(self, link_file):
+        ff = open('mylist.txt','w')
+        ff.close()
+        ts_list = []
+        with open(link_file,'r') as f:
+            download_url = f.readline()
+            ts_list.append(download_url)
+        self.download_ts(ts_list)
+
+    def get_url_from_listpage(self):
+        page_url = 'http://www.91porn.com/index.php'
+        #parse_args('porndl', **kwargs)
+        headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36Name',
+                'Referer': 'http://91porn.com'}
+        get_page=self.s.get(url=page_url, headers=headers)
+        print(get_page.text)
+        div = BeautifulSoup(get_page.text, "html.parser").find_all("div",class_="well well-sm videos-text-align")
+        viewurl = []
+        for i in div: 
+            viewurl.append(i.a.attrs["href"])
+            pass
+        print(viewurl)
+
+    def random_ip(self):
+        a=random.randint(1, 255)
+        b=random.randint(1, 255)
+        c=random.randint(1, 255)
+        d=random.randint(1, 255)
+        return (str(a)+'.'+str(b)+'.'+str(c)+'.'+str(d))
+
+    def filter_str(self, desstr, restr=''):
+        # filter all characters exculding chinese, english, and number. 
+        res = re.compile("[^\\u4e00-\\u9fa5^a-z^A-Z^0-9]")
+        title = res.sub(restr, desstr).replace("Chinesehomemadevideo","")
+        return title 
+
+    def download_m3u8_by_url(self, url): 
+        playlist = m3u8.load(url)
+        ts_list = []
+        for i in playlist.segments: 
+            print(i.base_uri + i.uri) 
+            ts_list.append(i.base_uri + i.uri) 
+        self.download_ts(ts_list)
+
+    def download_video_from_playpage(self, page_url = 'https://www.91porn.com/view_video.php?viewkey=1730213336'):
+        headers={'Accept-Language':'zh-CN,zh;q=0.9',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:66.0) Gecko/20100101 Firefox/66.0',
+                        'X-Forwarded-For': self.random_ip(),
+                        'referer': page_url,
+                        'Content-Type': 'multipart/form-data; session_language=cn_CN',
+                        'Connection': 'keep-alive',
+                        'Upgrade-Insecure-Requests': '1',
+                        }
+        base_req = self.s.get(url=page_url,headers=headers)
+        encodedata2 = open("strencode2.js",'r',encoding= 'utf8').read()
+        encodedata1 =  open("strencode.js",'r',encoding= 'utf8').read()
+        strencode2 = js2py.eval_js(encodedata2)
+        strencode = js2py.eval_js(encodedata1)  
+        a = re.compile('document.write\(strencode2\("(.*)"').findall(base_req.content.decode('utf-8'))
+        if len(a)>0:
+            a = a[0].split(',')
+            text = a[0].replace('"', '')
+            url = BeautifulSoup(strencode2(text), "html.parser").source.attrs['src']
+        else:
+            a= re.compile('document.write\(strencode\("(.*)"').findall(base_req.content.decode('utf-8'))
+            text = a[0].split(',')
+            url = BeautifulSoup(strencode(text[0].replace('"', ''),text[1].replace('"', ''),text[2].replace('"', '')), "html.parser").source.attrs['src']
+        title = BeautifulSoup(base_req.text, "html.parser").title.text.replace(" ","").replace("\n","")
+        title = self.filter_str(title)
+        videotype = urlparse(url).path.split(".")[1]
+        if videotype == "m3u8":
+            self.download_m3u8_by_url(url)
+            subprocess.call(f'ffmpeg -f concat -safe 0 -i mylist.txt -c copy {self.download_loc}/{title}.mp4', shell=True)
+        else:
+            self.download_video_by_url(url, self.download_loc, title, '.mp4')
+        
 def parse_args(script_name, **kwargs):
 
     help = 'Usage: %s [OPTION]... [URL]...\n\n' % script_name
@@ -85,16 +178,14 @@ def parse_args(script_name, **kwargs):
     \n'''
     help += '''Download options:
     -o | --output-dir <PATH>            Set output directory.
-    -a | --auto-proxy                   Auto choice an Chinese HTTP proxy.
-    -c | --cookies <COOKIES_FILE>       Load cookies.txt or cookies.sqlite.
-    -x | --http-proxy <HOST:PORT>       Use an HTTP proxy for downloading.
-    -s | --socks-proxy <HOST:PORT>      Use an SOCKS proxy for downloading.
+    -l | --link-file <FILE>             Set *.link file as input.
     -d | --debug                        Show traceback and other debug info.
     '''
 
     short_opts = 'Vhdac:o:x:s:'
     opts = ['version', 'help', 'debug', 'auto-proxy', 'cookies=', 'output-dir=', 'http-proxy=', 'socks-proxy=']
-
+    download_loc = './downloads'
+    link_file = ''
     # Get options and arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, opts)
@@ -102,14 +193,6 @@ def parse_args(script_name, **kwargs):
         print(err)
         print("try 'porndl --help' for more options")
         sys.exit(2)
-
-    global traceback
-    global auto_proxy
-    global output_dir
-
-    output_dir = './downloads'
-    traceback = False
-    auto_proxy = False
 
     for o, a in opts:
         if o in ("-V", "--version"):
@@ -120,39 +203,22 @@ def parse_args(script_name, **kwargs):
             sys.exit()
         elif o in ('-c', '--cookies'):
             print('cookies is {}'.format(a))
-        elif o in ('-d', '--debug'):
-            traceback = True
-        elif o in ('-a', '--auto-proxy'):
-            auto_proxy = True
         elif o in ("-o", "--output-dir"):
-            output_dir = a
-        elif o in ("-x", "--http-proxy"):
-            proxies['http'] = 'http://' + a
-            proxies['https'] = 'https://' + a
-        elif o in ("-s", "--socks-proxy"):
-            proxies['http'] = 'socks5://' + a
-            proxies['https'] = 'socks5://' + a
+            download_loc = a 
+        elif o in ("-l", "--link-file"):
+            link_file = a  
         else:
             print("try 'porndl --help' for more options")
             sys.exit(2)
 
-    if not args:
+    if (not args) & (link_file==''):
         print(help)
         sys.exit()
-    print(f'args: ${args}\n')
-    get_html(args[0])
-    #ffmpeg -f concat -safe 0 -i mylist.txt -c copy merged.mp4
-    subprocess.call('ffmpeg -f concat -safe 0 -i mylist.txt -c copy merged.mp4', shell=True)
-    #testmerge()
 
-def testmerge():
-    cwd = os.getcwd()
-    TS_DIR = 'downloads'
-    with open('merged.ts', 'wb') as merged:
-        for ts_file in os.listdir(f'{cwd}/{TS_DIR}'):
-            print(ts_file)
-            with open(f'{cwd}/{TS_DIR}/{ts_file}', 'rb') as mergefile:
-                shutil.copyfileobj(mergefile, merged)
+    pl = porndl(download_loc)
+    if not args:
+        pl.get_video_by_ts_files(download_loc) 
+    pl.download_video_from_playpage(args[0])
 
 
 def main(**kwargs):
